@@ -29,7 +29,7 @@
 local assert = assert
 
 -- Modules --
-local array_preds = require("array_ops.predicates")
+local array_preds = require("tektite_core.array.predicates")
 local flow_bodies = require("coroutine_ops.flow_bodies")
 
 -- Imports --

@@ -42,10 +42,10 @@ local status = coroutine.status
 local yield = coroutine.yield
 
 -- Modules --
-local collect = require("array_ops.collect")
-local errors = require("tektite.errors")
-local var_preds = require("var_ops.predicates")
-local wipe = require("array_ops.wipe")
+local collect = require("tektite_core.array.collect")
+local errors = require("tektite_core.errors")
+local var_preds = require("tektite_core.var.predicates")
+local wipe = require("tektite_core.array.wipe")
 
 -- Imports --
 local CollectArgsInto_IfAny = collect.CollectArgsInto_IfAny
