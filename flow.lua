@@ -116,7 +116,7 @@ do
 	-- @param arg Argument.
 	-- @param[opt] yvalue Value to yield.
 	-- @treturn The signals satisfied the predicate?
-	-- @see array_ops.predicates.All, array_ops.predicates.Any
+	-- @see tektite_core.array.predicates.All, tektite_core.array.predicates.Any
 	function M.WaitForMultipleSignals (signals, count, pred, update, arg, yvalue)
 		local pred_op = Setup(Config, pred)
 
