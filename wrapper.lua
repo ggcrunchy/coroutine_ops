@@ -47,6 +47,11 @@ local errors = require("tektite_core.errors")
 local var_preds = require("tektite_core.var.predicates")
 local wipe = require("tektite_core.array.wipe")
 
+-- Cookies --
+local _is_done = {}
+local _reset = {}
+local _status = {}
+
 -- Imports --
 local CollectArgsInto_IfAny = collect.CollectArgsInto_IfAny
 local GetLastTraceback = errors.GetLastTraceback
@@ -62,11 +67,6 @@ local Running = setmetatable({}, WeakKV)
 
 -- Coroutine wrappers --
 local Wrappers = setmetatable({}, WeakKV)
-
--- Cookies --
-local _is_done = {}
-local _reset = {}
-local _status = {}
 
 -- Exports --
 local M = {}

@@ -33,14 +33,14 @@ local setmetatable = setmetatable
 -- Modules --
 local var_preds = require("tektite_core.var.predicates")
 
+-- Cookies --
+local _null_id = {}
+
 -- Imports --
 local IsCallable = var_preds.IsCallable
 
 -- Cached module references --
 local _PerCoroutineFunc_
-
--- Cookies --
-local _null_id = {}
 
 -- Exports --
 local M = {}
