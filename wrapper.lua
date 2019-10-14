@@ -43,7 +43,6 @@ local yield = coroutine.yield
 
 -- Modules --
 local collect = require("tektite_core.array.collect")
-local errors = require("tektite_core.errors")
 local var_preds = require("tektite_core.var.predicates")
 local wipe = require("tektite_core.array.wipe")
 
@@ -54,10 +53,15 @@ local _status = {}
 
 -- Imports --
 local CollectArgsInto_IfAny = collect.CollectArgsInto_IfAny
-local GetLastTraceback = errors.GetLastTraceback
 local IsCallable = var_preds.IsCallable
-local StoreTraceback = errors.StoreTraceback
 local UnpackAndWipe = wipe.UnpackAndWipe
+
+-- Exports --
+local M = {}
+
+--
+--
+--
 
 -- Common weak metatable --
 local WeakKV = { __mode = "kv" }
@@ -67,9 +71,6 @@ local Running = setmetatable({}, WeakKV)
 
 -- Coroutine wrappers --
 local Wrappers = setmetatable({}, WeakKV)
-
--- Exports --
-local M = {}
 
 --- Queries a coroutine made by @{Wrap} about whether its body just ended an iteration.
 -- @tparam function coro Wrapper for coroutine to query.
@@ -117,6 +118,8 @@ function M.Status (coro)
 	return coro(_status)
 end
 
+local function DefError (err, _) error(err) end
+
 -- Default reset: no-op
 local function DefaultReset () end
 
@@ -125,9 +128,11 @@ local function DefaultReset () end
 -- @callable[opt] on_reset Function called on reset; if **nil**, this is a no-op.
 --
 -- Note that this will be executed in a protected call, within the context of the resetter.
+-- @callable[opt] err_func (**TODO**: redesign signature, e.g. with opts) Called as `err_func(err, coro)`,
+-- where _coro_ will be **nil** if the error comes from _on\_reset_. (**TODO**: Compare to timers.Wrap...)
 -- @treturn function Wrapper function.
 -- @see Reset
-function M.Wrap (func, on_reset)
+function M.Wrap (func, on_reset, err_func)
 	on_reset = on_reset or DefaultReset
 
 	-- Validate arguments and options.
@@ -164,13 +169,7 @@ function M.Wrap (func, on_reset)
 
 		-- Propagate any error.
 		if not success then
-			if coro then
-				StoreTraceback(coro, res_, 2)
-
-				res_ = GetLastTraceback(true)
-			end
-
-			error(res_, 3)
+			(err_func or DefError)(res_, coro)
 
 		-- Otherwise, return results if the body returned anything.
 		elseif return_count > 0 then
