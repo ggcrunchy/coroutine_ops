@@ -38,6 +38,10 @@ local IsCallable = var_preds.IsCallable
 -- Exports --
 local M = {}
 
+--
+--
+--
+
 -- Helper to process config info
 local function Process (config)
 	return config.yvalue == nil and "keep" or config.yvalue, not config.negate_done, config.use_time
@@ -226,5 +230,4 @@ function M.SetTimeLapseFuncs (lapse, deduct)
 	Lapse, Deduct = lapse, deduct
 end
 
--- Export the module.
 return M

@@ -235,5 +235,4 @@ function M.Wrap (func, on_reset, err_func)
 	return wrapper
 end
 
--- Export the module.
 return M

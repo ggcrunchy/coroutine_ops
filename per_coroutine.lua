@@ -45,6 +45,10 @@ local _PerCoroutineFunc_
 -- Exports --
 local M = {}
 
+--
+--
+--
+
 -- No function: no-op
 local function NoFunc () end
 
@@ -153,8 +157,6 @@ function M.TimeLapse (diff, get_id)
 	end
 end
 
--- Cache module members.
 _PerCoroutineFunc_ = M.PerCoroutineFunc
 
--- Export the module.
 return M
