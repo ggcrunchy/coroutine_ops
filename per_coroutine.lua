@@ -31,13 +31,10 @@ local running = coroutine.running
 local setmetatable = setmetatable
 
 -- Modules --
-local var_preds = require("tektite_core.var.predicates")
+local meta = require("tektite_core.table.meta")
 
 -- Cookies --
 local _null_id = {}
-
--- Imports --
-local IsCallable = var_preds.IsCallable
 
 -- Cached module references --
 local _PerCoroutineFunc_
@@ -66,7 +63,7 @@ local function GetListAndSetter ()
 
 	local function setter (func)
 		if func ~= "exists" then
-			assert(func == nil or IsCallable(func), "Uncallable function")
+			assert(func == nil or meta.CanCall(func), "Uncallable function")
 
 			funcs[running()] = func
 		else
@@ -118,8 +115,8 @@ end
 -- @treturn function Deduct function.
 -- @see PerCoroutineFunc, coroutine_ops.flow_bodies.SetTimeLapseFuncs
 function M.TimeLapse (diff, get_id)
-	assert(IsCallable(diff), "Uncallable time difference")
-	assert(IsCallable(get_id), "Uncallable id getter")
+	assert(meta.CanCall(diff), "Uncallable time difference")
+	assert(meta.CanCall(get_id), "Uncallable id getter")
 
 	local func, setter = _PerCoroutineFunc_()
 

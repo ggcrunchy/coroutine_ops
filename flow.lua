@@ -44,15 +44,13 @@ local M = {}
 --
 
 do
-	-- Wait config --
 	local Config = { use_time = true }
 
-	-- Wait helper
 	local function AuxWait (t, duration)
 		return t.time + t.lapse >= duration, duration - t.time
 	end
 
-	--- Waits for some time to pass.
+	--- Wait for some time to pass.
 	--
 	-- Built on top of @{coroutine_ops.flow_bodies.Body_Timed}.
 	-- @number duration Time to wait.
@@ -72,10 +70,8 @@ do
 end
 
 do
-	-- WaitForMultipleSignals* config --
 	local Config = {}
 
-	-- Signal predicates --
 	local Predicates = {
 		-- All signals set --
 		all = array_preds.All,
@@ -100,7 +96,7 @@ do
 		return assert(Predicates[pred], "Invalid predicate")
 	end
 
-	--- Waits for a group of signals to reach a certain state.
+	--- Wait for a group of signals to reach a certain state.
 	--
 	-- Built on top of @{coroutine_ops.flow_bodies.Body}.
 	-- @param signals Callable or read-indexable signal object. For _i_ = 1 to _count_,
@@ -145,15 +141,13 @@ do
 end
 
 do
-	-- WaitForSignal* config --
 	local Config = {}
 
-	-- Helper to test key
 	local function Index (t, k)
 		return t[k]
 	end
 
-	--- Waits for a single signal to fire.
+	--- Wait for a single signal to fire.
 	--
 	-- Built on top of @{coroutine_ops.flow_bodies.Body}.
 	-- @param signals Callable or read-indexable signal object. A signal has fired if
@@ -187,7 +181,6 @@ do
 end
 
 do
-	-- Helper to build ops that wait against a test
 	local function WaitPair (what, config)
 		M["Wait" .. what] = function(test, update, arg, yvalue)
 			config.yvalue = yvalue
@@ -203,7 +196,7 @@ do
 		end
 	end
 
-	--- Waits for a test to pass.
+	--- Wait for a test to pass.
 	--
 	-- Built on top of @{coroutine_ops.flow_bodies.Body}.
 	-- @function WaitUntil
@@ -229,7 +222,7 @@ do
 
 	WaitPair("Until", {})
 
-	--- Waits for a test to fail.
+	--- Wait for a test to fail.
 	--
 	-- Built on top of @{coroutine_ops.flow_bodies.Body}.
 	-- @function WaitWhile

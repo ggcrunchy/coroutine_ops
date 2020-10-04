@@ -30,10 +30,7 @@ local min = math.min
 local yield = coroutine.yield
 
 -- Modules --
-local var_preds = require("tektite_core.var.predicates")
-
--- Imports --
-local IsCallable = var_preds.IsCallable
+local meta = require("tektite_core.table.meta")
 
 -- Exports --
 local M = {}
@@ -70,8 +67,8 @@ end
 -- @param arg3 Argument #3.
 -- @treturn boolean Operation completed normally, i.e. _done_ resolved true?
 function M.Body (update, done, config, arg1, arg2, arg3)
-	assert(IsCallable(done), "Uncallable done")
-	assert(update == nil or IsCallable(update), "Uncallable update")
+	assert(meta.CanCall(done), "Uncallable done")
+	assert(update == nil or meta.CanCall(update), "Uncallable update")
 
 	local yvalue, test_done = Process(config)
 
@@ -147,8 +144,8 @@ end
 -- @param arg3 Argument #3.
 -- @treturn boolean Operation concluded normally?
 function M.Body_Timed (update, done, config, arg1, arg2, arg3)
-	assert(IsCallable(done), "Uncallable done")
-	assert(update == nil or IsCallable(update), "Uncallable update")
+	assert(meta.CanCall(done), "Uncallable done")
+	assert(update == nil or meta.CanCall(update), "Uncallable update")
 
 	local yvalue, test_done, use_time = Process(config)
 	local lapse_func, deduct = Lapse or NoLapse, Deduct or NoDeduct
@@ -205,27 +202,34 @@ function M.Body_Timed (update, done, config, arg1, arg2, arg3)
 	end
 end
 
+--- DOCME
+-- **N.B.** This calls the lapse function assigned via @{SetTimeLapseFuncs}, if any, so
+-- will trigger any side effects.
+-- @treturn number Lapse
+function M.GetLapse ()
+	return (Lapse or NoLapse)()
+end
+
 --- Assigns the time lapse functions used by @{Body_Timed}.
 --
 -- The lapse function tells us how much time is available **right now** to run a timed body
--- operation. It may be the case that all of that time was not needed: in these cases, a
--- useful abstraction is a "time bank", where the lapse function reports the "balance"
--- (typically, the entire time slice), and the deduct function is told how much was actually
--- needed, which will be the amount "withdrawn".
+-- operation. It may be the case that only some of this is needed: a useful abstraction
+-- here is a "time bank", where the "balance"&mdash;viz. the entire time slice&mdash;is
+-- reported, then the deduct function is told how much to "withdraw".
 --
--- In this way, say, a 10-millisecond wait need not consume a 100-millisecond time slice,
--- and indeed two consecutive 10-millisecond waits could run in the same slice (with the
--- lapse reporting first 100 and then 90 milliseconds).
+-- In this way, say, a 10-millisecond wait need not consume a 100-millisecond time slice.
+-- Indeed, two consecutive 10-millisecond waits could run and still leave more: the lapse
+-- would first report 100 milliseconds available, then 90, and so on.
 --
--- No unit of time is enforced: users are responsible for ensuring consistency.
+-- **N.B.** It is up to the user to decide on the unit of time and employ it consistently.
 -- @tparam ?|callable|nil lapse Lapse function to assign, which returns a time lapse as a
 -- non-negative number; or **nil** to restore the default (which returns 0).
 -- @tparam ?|callable|nil deduct Deduct function to assign, which accepts a non-negative
 -- lapse amount and deducts it from the "time bank"; or **nil** to restore the default (a
 -- no-op).
 function M.SetTimeLapseFuncs (lapse, deduct)
-	assert(lapse == nil or IsCallable(lapse), "Uncallable lapse function")
-	assert(deduct == nil or IsCallable(deduct), "Uncallable deduct function")
+	assert(lapse == nil or meta.CanCall(lapse), "Uncallable lapse function")
+	assert(deduct == nil or meta.CanCall(deduct), "Uncallable deduct function")
 
 	Lapse, Deduct = lapse, deduct
 end
