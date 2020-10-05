@@ -39,7 +39,6 @@ local M = {}
 --
 --
 
--- Helper to process config info
 local function Process (config)
 	return config.yvalue == nil and "keep" or config.yvalue, not config.negate_done, config.use_time
 end
@@ -70,39 +69,31 @@ function M.Body (update, done, config, arg1, arg2, arg3)
 	assert(meta.CanCall(done), "Uncallable done")
 	assert(update == nil or meta.CanCall(update), "Uncallable update")
 
-	local yvalue, test_done = Process(config)
+	local yvalue, failure = Process(config)
 
 	while true do
-		local is_done = not done(arg1, arg2, arg3) ~= test_done
+		local finished = not done(arg1, arg2, arg3) ~= failure
 
 		-- Update any user-defined logic, quitting on an early exit or if already done.
-		if is_done or (update ~= nil and update(arg1, arg2, arg3) == "done") then
-			return is_done
+		if finished or (update ~= nil and update(arg1, arg2, arg3) == "done") then
+			return finished
 		end
 
-		-- Yield, using any provided value.
 		yield(yvalue)
 	end
 end
 
--- Helper to constrain lapses
 local function Clamp (alapse, lapse)
 	return max(0, min(alapse, lapse))
 end
 
--- State to pass to callbacks --
 local TimeState = {}
 
--- Current deduct and lapse functions --
 local Deduct, Lapse
 
--- Default deduct: no-op
 local function NoDeduct () end
 
--- Default lapse: 0
-local function NoLapse ()
-	return 0
-end
+local function NoLapse () return 0 end
 
 --- Timed variant of @{Body}.
 --
@@ -147,16 +138,14 @@ function M.Body_Timed (update, done, config, arg1, arg2, arg3)
 	assert(meta.CanCall(done), "Uncallable done")
 	assert(update == nil or meta.CanCall(update), "Uncallable update")
 
-	local yvalue, test_done, use_time = Process(config)
+	local time, yvalue, failure, use_time = 0, Process(config)
 	local lapse_func, deduct = Lapse or NoLapse, Deduct or NoDeduct
-	local time = 0
 
 	while true do
 		local lapse = lapse_func()
 
-		-- Call the appropriate form of the done logic, depending on whether we care
-		-- about time, and decide whether the body is done (at least by the end of the
-		-- iteration).
+		-- Call the appropriate done logic, depending on whether we care about time, and
+		-- decide whether the body is done (at least by the end of the iteration).
 		local done_result, alapse_done
 
 		if use_time then
@@ -167,18 +156,18 @@ function M.Body_Timed (update, done, config, arg1, arg2, arg3)
 			done_result = done(arg1, arg2, arg3)
 		end
 
-		local is_done = not done_result ~= test_done
+		local finished = not done_result ~= failure
 
 		-- If the done logic worked, the loop is ready to terminate. In this case, find
 		-- out how much time passed on this iteration, erring toward none.
-		alapse_done = is_done and Clamp(alapse_done or 0, lapse)
+		alapse_done = finished and Clamp(alapse_done or 0, lapse)
 
 		-- If the loop is not ready to terminate, or it is but it took some time, update
 		-- any user-defined logic with however much time is now available. If there was an
 		-- early exit there, find out how much of this time passed, erring toward all of it.
 		local elapse_result, alapse_update
 
-		if update ~= nil and (not is_done or alapse_done > 0) then
+		if update ~= nil and (not finished or alapse_done > 0) then
 			TimeState.time, TimeState.lapse = time, alapse_done or lapse
 
 			elapse_result, alapse_update = update(TimeState, arg1, arg2, arg3)
@@ -187,7 +176,7 @@ function M.Body_Timed (update, done, config, arg1, arg2, arg3)
 		alapse_update = elapse_result == "done" and Clamp(alapse_update or lapse, alapse_done or lapse)
 
 		-- Deduct however much time passed on this iteration from the store. If ready, quit.
-		if is_done or elapse_result == "done" then
+		if finished or elapse_result == "done" then
 			deduct(alapse_update or alapse_done)
 
 			return elapse_result ~= "done"
@@ -197,7 +186,6 @@ function M.Body_Timed (update, done, config, arg1, arg2, arg3)
 
 		time = time + lapse
 
-		-- Yield, using any provided value.
 		yield(yvalue)
 	end
 end
